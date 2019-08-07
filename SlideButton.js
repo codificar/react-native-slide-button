@@ -31,18 +31,16 @@ export class SlideButton extends Component {
     };
   }
 
-  /* Button movement of > 40% is considered a successful slide by default*/
+  /* Button movement of > 40% is considered a successful slide */
   isSlideSuccessful() {
-    var slidePercent = this.props.successfulSlidePercent || 40;
-    var successfulSlideWidth = this.buttonWidth * slidePercent / 100;
     if (!this.props.slideDirection) {
-      return this.state.dx > this.props.successfulSlideWidth;  // Defaults to right slide
+      return this.state.dx > (this.buttonWidth * 0.4);  // Defaults to right slide
     } else if (this.props.slideDirection === SlideDirection.RIGHT) {
-      return this.state.dx > this.props.successfulSlideWidth;
+      return this.state.dx > (this.buttonWidth * 0.4);
     } else if (this.props.slideDirection === SlideDirection.LEFT) {
-      return this.state.dx < (-1 * this.props.successfulSlideWidth);
+      return this.state.dx < -(this.buttonWidth * 0.4);
     } else if (this.props.slideDirection === SlideDirection.BOTH) {
-      return Math.abs(this.state.dx) > this.props.successfulSlideWidth;
+      return Math.abs(this.state.dx) > (this.buttonWidth * 0.4);
     }
   }
 
@@ -127,6 +125,16 @@ export class SlideButton extends Component {
     }
   }
 
+  measureButton() {
+    var self = this;
+    this.refs.button.measure((ox, oy, width, height) => {
+      self.setState({
+        initialX: ox,
+        buttonWidth: width
+      });
+    });
+  }
+
   moveButtonIn(onCompleteCallback) {
     var self = this;
     var startPos = this.state.dx < 0 ? this.state.initialX + this.buttonWidth :
@@ -187,7 +195,7 @@ export class SlideButton extends Component {
     var style = [styles.button, this.props.style, {left: this.state.dx}];
 
     if (this.state.released) {
-      style = [styles.button, this.props.style, {left: this.state.animatedX}];
+      style = [styles.button, this.props.style, { left: this.state.animatedX }];
       var button = (
         <Animated.View style={style}>
           {this.props.children}
@@ -197,27 +205,20 @@ export class SlideButton extends Component {
       var button = (
         <View style={style}>
           <View onLayout={this.onLayout.bind(this)}>
-           {this.props.children}
+          {this.props.children}
           </View>
         </View>
       );
     }
 
     return (
-      <View style={{width: this.props.width, height: this.props.height, overflow:  'hidden'}}>
-        <View style={styles.container} {...this.panResponder.panHandlers}>
+        <View ref="button" style={styles.container} 
+         {...this.panResponder.panHandlers}>
           { button }
         </View>
-      </View>
     );
   }
 }
-
-SlideButton.propTypes = {
-    width: React.PropTypes.number.isRequired,
-    height: React.PropTypes.number.isRequired,
-    successfulSlidePercent: React.PropTypes.number
-};
 
 const styles = StyleSheet.create({
   container: {
